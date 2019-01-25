@@ -43,6 +43,7 @@ function insert_click() {
     isanim = true;
     if (isauto) svg.nextAnimation();
     result = "OK";
+    d.getElementById("sizeCounter").innerHTML = "Количество элементов: " + thickHeap.getSize();
 }
 
 function insertrand_click() {
@@ -59,6 +60,7 @@ function insertrand_click() {
     isanim = true;
     if (isauto) svg.nextAnimation();
     result = "OK";
+    d.getElementById("sizeCounter").innerHTML = "Количество элементов: " + thickHeap.getSize();
 }
 
 function deleteMin_click() {
@@ -77,6 +79,7 @@ function deleteMin_click() {
     thickHeap.deleteMin();
     isanim = true;
     svg.nextAnimation();
+    d.getElementById("sizeCounter").innerHTML = "Количество элементов: " + thickHeap.getSize();
 }
 
 function getMin_click() {
