@@ -1,0 +1,7 @@
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\bin\Debug\ThickHeap2.exe.config
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\bin\Debug\ThickHeap2.exe
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\bin\Debug\ThickHeap2.pdb
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\obj\Debug\ThickHeap2.csprojResolveAssemblyReference.cache
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\obj\Debug\ThickHeap2.csproj.CoreCompileInputs.cache
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\obj\Debug\ThickHeap2.exe
+C:\Users\Данил\source\repos\ThickHeap2\ThickHeap2\obj\Debug\ThickHeap2.pdb

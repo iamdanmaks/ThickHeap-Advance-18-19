@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		
+		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" 
+			integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+		
+		<style>
+			body
+			{
+				padding:0;
+				margin:0;
+				width: 100vw;
+				overflow-x: hidden;
+			}
+			svg
+			{
+				padding:0;
+				margin:0;
+				border-left: 1px solid black;
+			}
+			.node {
+				 fill: lightblue;
+				 stroke: dodgerblue;
+				 stroke-width: 2px;
+			}
+			.activeNode {
+				stroke: maroon;
+			}
+			.minNode {
+				fill : greenyellow;
+			}
+			.deletedNode{
+				fill : rgb(240, 100, 40);
+			}
+			.link {
+				 stroke: #777;
+				 stroke-width: 2px;
+			}
+			.pointer{
+				stroke: rgb(100, 240, 140);
+				stroke-width: 3px;
+				transition: 410ms;
+			}
+			text
+			{
+				font-size: 16px;
+			}
+			
+			.cell
+			{
+				fill: lightgreen;
+				stroke-width: 0px;
+			}
+			.activeCell
+			{
+				fill: green;
+				fill: #FFA500;
+			}			
+			span.wrn
+			{
+				transition: 510ms ease-in-out;
+			}
+			span.curop
+			{
+				font-size: 17px;
+				vertical-align: top;
+				display:inline-block;
+				margin: 10px;
+			}
+   	</style>
+	</head>
+	<body>
+		<div class="row" style="margin-left: 1px; width: 100vw; border-bottom: 1px solid black;">
+			<div class="col-sm-2">
+				<div id="res" class="result w-100 text-center text-light bg-info">Результаты операций</div>
+				<br><input maxlength="4" class="form-text w-100 text-center" onfocus = "hideWarnings();" id="ins" type="text" placeholder="Значение узла"><br>
+				<button class="btn btn-outline-primary btn-sm btn-block" onclick = "insert_click()">Добавить элемент</button>
+				<button class="btn btn-outline-primary btn-sm btn-block" onclick = "insertrand_click()">Добавить случайный элемент</button>
+				<button class="btn btn-outline-primary btn-sm btn-block" onclick = "getMin_click()">Получить минимальный элемент</button>
+				<button class="btn btn-outline-primary btn-sm btn-block" onclick = "deleteMin_click()">Удалить минимальный элемент</button>
+				<button class="btn btn-outline-primary btn-sm btn-block" onclick = "size_click()">Количество элементов</button>
+				<input id="mode" onchange = "changeMode()" type="checkbox" >
+				<label style="vertical-align:top; font-size:17px; display:inline-block; margin:0px 10px 0 0;">Пошаговый режим</label>			
+				<button class="btn btn-outline-primary btn-sm" onclick = "nextStep()" id="nextstep"
+				style="display: none; opacity: 0; transition: 410ms;" disabled>Следущий шаг</button>
+				<br>Скорость:
+				<input id="speed" class="form-control-range" oninput="speedChange()" type="range" min="1" max="25" value="15">
+				<span id="speedsp" style="vertical-align:top; display:inline-block; margin:3px 0 0 10px;">15</span>			
+			</div>
+
+			<svg class="col-sm-auto" id = "layout" width = "1090" height = "656" onload = "svg.layout_ = this;">
+				<defs>
+					<marker id="end-arrow" viewBox="0 -5 10 10" refX="33" markerWidth="3.5" markerHeight="3.5" orient="auto">
+						<path d="M0,-5L10,0L0,5"></path>
+					</marker>
+					<marker id="start-arrow" viewBox="0 -5 10 10" refX="33" markerWidth="3.5" markerHeight="3.5" orient="auto-start-reverse">
+						<path d="M0,-5L10,0L0,5"></path>
+					</marker>
+					<marker id="mark-end-arrow" viewBox="0 -5 10 10" refX="7" markerWidth="3.5" markerHeight="3.5" orient="auto">
+						<path d="M0,-5L10,0L0,5"></path>
+					</marker>
+				</defs>
+				<g transform="translate(310, 620)" style="opacity: 1;">
+					<circle class="node minNode" r="17"></circle>
+				</g>
+				<g transform="translate(560, 620)" style="opacity: 1;">
+					<circle class="node activeNode" r="17"></circle>
+				</g>
+				<text x=335 y=620 font-family="sans-serif" style="font-size:85%" >- минимальный узел в куче </text>
+				<text x=585 y=620 font-family="sans-serif" style="font-size:85%" >- активный узел </text>
+				<text x=330 y=22 font-family="sans-serif" style="font-size:85%" >ранг </text>
+				<text x=330 y=46 font-family="sans-serif" style="font-size:85%" >значение </text>
+					
+			</svg>
+
+
+		</div>
+					
+		<div class="w-50 text-center" style="overflow-y: scroll; height: 19vh; position: fixed; bottom: -18vh; margin: 0 0 0 25vw; background: tomato;
+			transition: 410ms; padding: 0 0 1% 0;" 
+			onmouseover="this.style.bottom = 0;" onmouseout="this.style.bottom = '-18vh';" id="oper">
+		</div>
+			
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp1">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw;opacity: 0;" id="sp5">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp2">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp3">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp4">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp6">temp</span>
+		<span class="fixed-top alert alert-danger text-center w-50 wrn" style="margin: 1vh 0  0 25vw; opacity: 0;" id="sp7">temp</span>
+
+		<script src='http://d3js.org/d3.v3.min.js'></script>
+		<script src="simple-undo.js"></script>
+		
+		<script src="script.js" type="text/javascript"></script>
+		<script src="heap.js" type="text/javascript"></script>
+		<script src="actions.js" type="text/javascript"></script>
+	</body>
+</html>

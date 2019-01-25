@@ -1,0 +1,853 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+                        <h3 style="color: yellow;">
+                            Толстая куча на избыточном счётчике
+                        </h3>
+                        <h5 style="font-size: 70%;">
+                            Подготовил Максименко Даниил
+                        </h5>
+				</section>
+				<section style="font-size: 65%;">
+                    <strong style="color: yellow">Толстая куча</strong> — это почти кучеобразный нагруженный лес
+                    толстых деревьев.
+                </section>
+                <section>
+                    <section>
+                        <h4 style="color: yellow;">ИСТОРИЯ СОЗДАНИЯ</h4>
+                        <div style="font-size: 65%;">
+                            Структура данных была изобретена Робертом Тарьяном в 2005 году совместно с Хаимом Капланом в рамках научной работы
+                            "Thin heaps, thick heaps" для Школы компьютерных наук при университете Тель Авива.<br><br>
+                            Эта структура данных задумывалась как альтернатива тонким кучам, обеспечивающая 
+                            меньшую констату для основных операций и большую гибкость.
+                            <br><img src="img/tarjan.jpg" style="height: 25vh; width: 9vw; text-align: right;">
+                            <br>Роберт Тарьян
+                        </div>
+                    </section>
+                    <section>
+                        <h4 style="color: yellow;">ИСТОРИЯ СОЗДАНИЯ</h4><br>
+                        <div style="font-size: 65%;">
+                            В 2012 датские учёные факультета компьютерных наук Университета Копенгагена Амр Элмасри и Юрки Катаяйнен предложили
+                            иную реализацию толстой кучи не основанную на d-арных счётчиках, но удерживающую оптимальную временную сложность для худших
+                            случаев основных операций. Данная реализация немного эфективнее оригинала и по словам создателей 
+                            проще для имплементирования.<br><br>
+                            В данной работе будет рассматриваться оригинальная версия, предложенная Тарьяном, ведь по ней можно найти больше
+                             материалов.
+                        </div>
+                    </section>
+                </section>
+                <section style="font-size: 65%;">
+                    <h4 style="color: yellow;">Цель и область применения</h4><br>
+                    Цель толстой кучи – позволить максимально быстро получать минимальные или максимальные значения из некоторого множества,
+                     а так же изменять их.<br><br>
+                    Высокая скорость выполнения операций создания кучи, добавления и удаления минимума позволяют применять эту структуру в 
+                    следующих ситуациях:<br><br>
+                    <ul>
+                        <li>
+                            <strong style="color: yellow">HeapSort</strong> (сортировка кучей либо пирамидальная сортировка);
+                        </li><br>
+                        <li>
+                            <strong style="color: yellow">Алгоритмы поиска</strong> минимума, максимума, медианы 
+                            либо k-того наибольшего элемента. Временная сложность может выйти
+                            линейной или даже константной в лучших случаях;
+                        </li><br>
+                        <li>
+                            <strong style="color: yellow">Алгоритмы на графах</strong>. Даёт сокращение времени выполнения на 
+                            полиномиальный порядок при внутреннем обходе. К примеру алгоритмы Прима и Дейкстры.
+                        </li>
+                    </ul>
+                </section>
+                <section>
+                    <section style="font-size: 65%;">
+                        Для дальнейшего разбора основной темы нужно кратко пройти толстые деревья (thick tree).
+                    </section>
+                    <section style="font-size: 65%;">
+                        Определяем толстое дерево <h2 style="display: inline-block; color: yellow;">$ F_k $</h2>
+                        ранга <h2 style="display: inline-block; color: yellow;"> $ k $ </h2>
+                        (<h2 style="display: inline-block; color: yellow;"> $ k=0,1,2,… $ </h2>) следующим образом:<br>
+                        <br>
+                        <ul>
+                            <li>
+                                Толстое дерево <h2 style="display: inline-block; color: yellow;"> $ F_0 $ </h2>
+                                ранга ноль состоит из единственного узла;
+                            </li>
+                            <br>
+                            <li>
+                                Толстое дерево <h2 style="display: inline-block; color: yellow;"> $ F_k $ </h2>
+                                ранга <h2 style="display: inline-block; color: yellow;"> $ k $ </h2>, для
+                                <h2 style="display: inline-block; color: yellow;"> $ k=1,2,3,…, $ </h2> состоит из трех
+                                деревьев <h2 style="display: inline-block; color: yellow;"> $ Fk−1 $ </h2>
+                                ранга <h2 style="display: inline-block; color: yellow;"> $ k−1 $ </h2>,
+                                таких, что корни двух из них являются самыми левыми потомками корня третьего.
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Ранг узла <h2 style="display: inline-block; color: yellow;"> $ x $ </h2>
+                        в толстом дереве определяется как ранг толстого поддерева с корнем в узле
+                        <h2 style="display: inline-block; color: yellow;"> $ x $ </h2>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <img src="img/trees.png" style="width: 50vw; height: 45vh;" />
+                        <br><span style="font-size: 65%;">Толстые деревья рангов 0, 1, 2, 3</span>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <strong style="color: yellow">Толстый лес</strong>
+                        (<strong style="color: yellow">Thick forest</strong>) — это набор толстых деревьев,
+                        ранги которых не обязательно попарно различны.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h3>Свойства толстых деревьев</h3>
+                        <ul>
+                            <li>
+                                В толстом дереве ранга <h2 style="color: yellow; display: inline-block"> $ k $ </h2>
+                                ровно <h2 style="display: inline-block; color: yellow"> $ 3^k $ </h2> узлов;
+                            </li><br>
+                            <li>
+                                Для любого натурального числа <h2 style="display: inline-block; color: yellow;"> $ n $
+                                </h2> существует лес из толстых деревьев, в котором ровно
+                                <h2 style="display: inline-block; color: yellow;"> $ n $ </h2> узлов;<br>
+                                <i style="color: forestgreen;">//Такой лес можно построить, включив в него столько
+                                деревьев ранга i, каково значение i-го разряда представления числа n в троичной системе
+                                счисления. Для построения такого леса можно использовать и избыточные
+                                троичные представления.</i>
+                            </li><br>
+                            <li>
+                                Толстый лес из n узлов содержит <h2 style="display: inline-block; color: yellow">
+                                $ O(logn) $ </h2> деревьев.
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Рассмотрим лес из нескольких толстых деревьев, ранги которых не обязательно попарно различны и
+                        узлам которых взаимно однозначно поставлены в соответствие элементы взвешенного множества.
+                        Такой лес будем называть <strong style="color: yellow">нагруженным</strong>.
+                        <br><br> Узел в нагруженном лесе назовем <strong style="color: yellow">неправильным</strong>,
+                        если его ключ меньше ключа его родителя.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <strong style="color: yellow">Кучеобразный лес</strong> — нагруженный лес, значения узлов 
+                         которого удовлетворяют свойству кучи: значение 
+                        каждого узла <strong style="color: yellow">больше (либо равно)</strong> значения узла родителя.
+                        <br><br>ИЛИ<br><br>
+                        Нагруженный лес назовем почти <strong style="color: yellow">кучеобразным</strong>, если для каждого
+                         значения <strong style="color: yellow">k</strong> в нем имеется не более 
+                        двух неправильных узлов ранга <strong style="color: yellow">k</strong>.
+                    </section>
+                </section>
+                <section>
+                    <section style="font-size: 65%;">
+                        Рассмотрим <strong style="color: yellow">b-арные избыточные представления</strong> чисел. 
+                        В дальнейшем они потребуются для создания корневого счётчика, через который будет реализована куча.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <strong style="color: yellow">Избыточное b-арное представление числа</strong>
+                         – представление числа в системе счисления <strong style="color: yellow">b</strong> используя цифры 
+                         <strong style="color: yellow">от 0 до b</strong>.<br><br>
+                         ИЛИ<br><br>
+                        Избыточным b-арным представлением числа x юудем называть последовательность<br> 
+                        <h2 style="display: inline-block; color: yellow">
+                            $ d = d_n, d_{n - 1}, ..., d_0 $
+                        </h2>, такую что 
+                        <h2 style="display: inline-block; color: yellow">
+                            $ {\sum}_{i = 0}^n {d_ib^i} $
+                        </h2>, где
+                        <h2 style="display: inline-block; color: yellow">$ d_i \in \{ 0,1,...,b \}$</h2>, 
+                        <h2 style="display: inline-block; color: yellow">$i \in \{ 0,1,...,n \} $</h2>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        Заметим, что избыточное представление отличается от обычного b-арного представления 
+                        использованием лишней цифры b, что приводит к неоднозначности представления чисел.
+                        <br><br>Пример: При основании <strong style="color: yellow">3</strong> число 
+                        <strong style="color: yellow">3</strong> можно записать и как 
+                        <strong style="color: yellow">3</strong>, и как <strong style="color: yellow">10</strong>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <strong style="color: yellow">Счетчики</strong>, основаные на 
+                        <strong style="color: yellow">троичном избыточном представлении</strong>, — лишь один из способов 
+                        реализации толстых куч. На самом деле, для их реализации подойдет произвольный 
+                        <strong style="color: yellow">d-арный счетчик</strong>, при условии, 
+                        что <strong style="color: yellow">трудоемкость инкрементирования</strong> любого его разряда является 
+                        <strong style="color: yellow">константной</strong>.
+                        <br><br>Тогда докажем, что инкрементирование разрядов избыточного b-арного представления является константным.
+                    </section>
+                    <section style="font-size: 65%;">
+                        В инкрементировании разряда избыточного представления используется операция <strong style="color: yellow">
+                        фиксации цифры</strong>.<br><br>
+                        Фиксацией цифры b, стоящей в i-м разряде представления d, назовем операцию <strong style="color: yellow">fix(i) 
+                        </strong>, заключающуюся в обнулении 
+                        цифры <h2 style="display: inline-block; color: yellow">$ d_i $</h2> и инкрементировании цифры 
+                        <h2 style="display: inline-block; color: yellow">$ d_{i+1} $</h2>, при этом если 
+                        <h2 style="display: inline-block; color: yellow">$ i = n $</h2>, то полагаем 
+                        <h2 style="display: inline-block; color: yellow">$ d_{i + 1} = 1 $</h2>. Очевидно, 
+                        при <h2 style="display: inline-block; color: yellow">$ b>2 $</h2> операцию 
+                        <strong style="color: yellow">fix(i)</strong> можно выполнить следующим образом:<br>
+                        <pre><code data-trim data-noescape>
+                                void fix(int i):
+                                &nbsp;&nbsp;&nbsp;&nbsp;if d[i] == b:
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[i] = 0
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;d[i + 1]++
+                        </code></pre><br>
+                        Временная сложность: <h2 style="display: inline-block; color: yellow">$ O(1) $</h2>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        Для инкрементирования требуется зафиксировать значение разряда, проинкрементировать его и снова зафиксировать.
+                        Это можно реализовать следующим образом:<br>
+                        <pre><code data-trim data-noescape>
+                                void inc(int i):
+                                &nbsp;&nbsp;&nbsp;&nbsp;fix(i)
+                                &nbsp;&nbsp;&nbsp;&nbsp;d[i]++
+                                &nbsp;&nbsp;&nbsp;&nbsp;fix(i)
+                        </code></pre><br>
+                        Временная сложность: <h2 style="display: inline-block; color: yellow">$ O(1) $</h2>.
+                    </section>
+                </section>
+                <section>
+                    <section style="font-size: 65%;">
+                        Теперь рассмотрим структуру самой кучи и её элементов.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow;">Структура узла кучи</h4><br>
+                        <pre><code class="csharp" data-trim data-noescape>
+                                public class Node {
+                                &nbsp;&nbsp;&nbsp;&nbsp;private int key; //ключ элемента, приписаного узлу дерева</i>
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node parent; //указатель на родителя узла</i>
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node left; //указатель на ближайшего левого брата</i>
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node right; //указатель на ближайшего правого брата</i>
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node lChild; //указатель на самого левого сына</i>
+                                &nbsp;&nbsp;&nbsp;&nbsp;private int rank; //ранг узла
+                                }
+                        </code></pre>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <img src="img/node.png" style="width: 36vw; height: 24vh; border-radius: 2%;">
+                        <br>Узел 2 ранга
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow;">Структура корневого счётчика и его узлов</h4><br>
+                        <pre><code class="csharp" data-trim data-noescape>
+                                public class RootNode {
+                                &nbsp;&nbsp;&nbsp;&nbsp;private int value; //значение і-го разряда равное количеству деревьев ранга і
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node listPointer; //указатель на список дереьев ранга i
+                                }
+                        </code></pre>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <img src="img/root.png" style="width: 54vw; height: 45vh; border-radius: 2%;">
+                        <br>Ячейки корневого счётчика 1-го и 0-го рангов со значениями 1
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow;">Структура толстой кучи</h4><br>
+                        <pre><code class="csharp" data-trim data-noescape>
+                                public class ThickHeap {
+                                &nbsp;&nbsp;&nbsp;&nbsp;private List < RootNode > rootCount = new List < RootNode > (); //массив, соответствующий корневому счетчику
+                                &nbsp;&nbsp;&nbsp;&nbsp;private Node minPointer; //указатель на элемент кучи с минимальным ключом
+                                &nbsp;&nbsp;&nbsp;&nbsp;private int maxRank; //наибольший ранг среди рангов деревьев, присутствующих в куче
+                                &nbsp;&nbsp;&nbsp;&nbsp;private int size; //количество узлов в куче
+                                }
+                        </code></pre>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <img src="img/heap.png" style="width: 54vw; height: 45vh; border-radius: 2%;">
+                        <br>Куча размера 9 и с максимальным рангом 1. Минимум - 47.
+                    </section>
+                </section>
+                <section >
+                    <section style="font-size: 65%;">
+                        Рассмотрим вспомогательные операции кучи:<br><br>
+                        <ul>
+                            <li>
+                                insertTree
+                            </li>
+                            <li>
+                                deleteTree
+                            </li>
+                            <li>
+                                fastening
+                            </li>
+                            <li>
+                                insert
+                            </li>
+                            <li>
+                                delete
+                            </li>
+                            <li>
+                                minKeyNodeRoot
+                            </li>
+                            <li>
+                                minKey
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">insertTree(tree, heap)</h4><br>
+                        Вставка дерева ранга r в список, принадлежащий рангу r, корневого счётчика кучи heap:<br><br>
+                        <ol>
+                            <li>
+                                Вставляем tree на первую позицию списка ранга r в корневом счётчике кучи heap;
+                            </li>
+                            <li>
+                                Перенаправляем указатель на список в соответсвуещем разряде корневого счётчика на tree;
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/insertToList.png" style="width: 44vw; height: 34vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">deleteTree(tree, heap)</h4><br>
+                        Удаление дерева ранга r из списка, принадлежащего рангу r, корневого счётчика кучи heap:<br><br>
+                        <ol>
+                            <li>
+                                Если tree - первое дерево в списке, то перенаправляем указатель на список с tree 
+                                на tree.right;
+                            </li>
+                            <li>
+                                Иначе меняем укзатель tree.left.right с tree на tree.right; 
+                            </li>
+                            <li>
+                                Переприсваем tree.right = null;
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/deleteFromList.png" style="width: 44vw; height: 34vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">fastening(first, second, third, heap)</h4><br>
+                        Связывание трёх толстых деревьев first, second, third ранга r в одно толстое дерево ранга r + 1:<br><br>
+                        <ol>
+                            <li>
+                                Выбираем дерево с минимальным значением в корне. Оно станет корнем нового толстого дерева 
+                                ранга r + 1;
+                            </li>
+                            <li>
+                                Если значения совпадают, то объединяем так, чтоб минимум кучи оказался корнем дерева;
+                            </li>
+                            <li>
+                                Два оставшихся дерева становятся старшими детьми минимального (левая часть списка детей);
+                            </li>
+                            <li>
+                                Инкрементируем ранг узла оказавшегося в корне;
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/fastening.gif" style="width: 60vw; height: 54vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">insert(tree, heap)</h4><br>
+                        Операция вставки дерева ранга r в кучу heap:
+                        <br><br><ol>
+                            <li>
+                                Если в куче уже есть 3 дерева ранга r, то фиксируем корневой счётчик:
+                                <ul>
+                                    <li>
+                                        Удаляем из кучи все 3 дерева;
+                                    </li>
+                                    <li>
+                                        Связываем их в одно ранга r + 1;
+                                    </li>
+                                    <li>
+                                        Обнуляем r-й разряд корневого счётчика;
+                                    </li>
+                                    <li>
+                                        Вставляем полученное дерево в кучу (начинаем рекурсию и продолжаем её пока не дойдём
+                                         до разряда счётчика со значением меньше трёх);
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                Добавляем дерево в список ранга r (insertTree);
+                            </li>
+                            <li>
+                                Инкрементируем r-й разряд;
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/insertTree.gif" style="width: 54vw; height: 54vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">delete(tree, heap)</h4><br>
+                        Операция удаления дерева ранга r из кучи heap:
+                        <br><br><ol>
+                            <li>
+                                Удаляем дерево из списка ранга r (deleteTree);
+                            </li>
+                            <li>
+                                Декрементируем r-й разряд корневого счётчика;
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/deleteTree.gif" style="width: 40vw; height: 30vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">minKeyNodeRoot(pointer, heap)</h4><br>
+                        Операция поиска дерева с минимальным значением в корне в списке, ссылка на который хранится в соответствующем разряде корневого счётчика:
+                        <br><br><ol>
+                            <li>
+                                Просматриваем весь список, в котором не более трёх деревьев;
+                            </li>
+                            <li>
+                                Возвращаем минимальное значение;
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">minKey(heap)</h4><br>
+                        Операция поиска минимального элемента во всей куче heap:
+                        <br><br><ol>
+                            <li>
+                                Находим для каждого списка свой минимальный элемент (minKeyNodeRoot);
+                            </li>
+                            <li>
+                                Находим минимальный элемент среди полученых на первом шаге и возвращаем его;
+                            </li>
+                        </ol><br><br>
+                        Поскольку деревья кучеобразные минимальный элемент всегда будет в одном из корневых узлов.
+                    </section>
+                </section>
+                <section>
+                    <section style="font-size: 65%;">
+                        Теперь рассмотрим основные операции:<br><br>
+                        <ul>
+                            <li>
+                                makeHeap
+                            </li>
+                            <li>
+                                add
+                            </li>
+                            <li>
+                                deleteMin
+                            </li>
+                            <li>
+                                getMin
+                            </li>
+                            <li>
+                                getSize
+                            </li>
+                            <li>
+                                decreaseKey
+                            </li>
+                            <li>
+                                remove
+                            </li>
+                            <li>
+                                meld
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">makeHeap()</h4><br>
+                        Операция инициализации кучи:
+                        <br><br><ol>
+                            <li>
+                                Создаём новую толстую кучу с максимальным рангом -1 и пустым корневым счётчиком. 
+                                Счётчик будет в дальнейшем инициализироваться поразрядно для сохранения констатности 
+                                операции;
+                            </li>
+                            <li>
+                                Возвращаем созданную кучу.
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">add(element, heap)</h4><br>
+                        Операция добавления в кучу:
+                        <br><br><ol>
+                            <li>
+                                Создаём новое дерево ранга 0;
+                            </li>
+                            <li>
+                                Если значение нового элемента меньше минимума кучи, то обновляем указатель на минимум;
+                            </li>
+                            <li>
+                                Используя insert, вставляем новое дерево в кучу;
+                            </li>
+                            <li>
+                                Инкрементируем количество элементов в куче.
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/insert.gif" style="width: 84vw; height: 54vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">getMin(heap)</h4><br>
+                        Операция получения минимального значения, хранимого в куче:
+                        <br><br><ol>
+                            <li>
+                                Возвращаем значение минимального узла, указатель на который хранит куча.
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">getSize(heap)</h4><br>
+                        Операция получения количества значений, хранимых в куче:
+                        <br><br><ol>
+                            <li>
+                                Возращаем значение, хранимое в счётчике количества элементов кучи;
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">deleteMin(heap)</h4><br>
+                        Операция удаления минимального элемента из кучи:
+                        <br><br><ol>
+                            <li>
+                                Декрементируем счётчик количества элементов кучи;
+                            </li>
+                            <li>
+                                Удаляем дерево с минимальным ключом из кучи операцией delete;
+                            </li>
+                            <li>
+                                Декрементируем разряд корневого счётчика с рангом удалённого дерева;
+                            </li>
+                            <li>
+                                Вставляем в кучу всех детей удалённого узла (insert);
+                            </li>
+                            <li>
+                                Ищем новый минимальный элемент и переприсваиваем ему указатель на минимум самой кучи (minKey).
+                            </li>
+                        </ol>
+                    </section>
+                    <section>
+                        <img src="img/deleteMin.gif" style="width: 84vw; height: 54vh; border-radius: 2%;">
+                    </section>
+                    <section style="font-size: 65%;">
+                        При последующих операциях могут проявляться нарушения. Для их обработки используется счётчик нарушений.
+                        Каждый элемент этого счётчика выглядит так:<br><br>
+                        <pre><code class="csharp" data-trim data-noescape>
+                            public class ViolationNode {
+                            &nbsp;&nbsp;&nbsp;&nbsp;private int value; //количество неправильных узлов ранга r в куче
+                            &nbsp;&nbsp;&nbsp;&nbsp;private Node firstViolation; //указатель на неправильный узел ранга r
+                            &nbsp;&nbsp;&nbsp;&nbsp;private Node secondViolation; //указатель на неправильный узел ранга r
+                            }
+                        </code></pre>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">decreaseKey(element, heap)</h4><br>
+                        Операция уменьшения ключа определённого узла:
+                        <br><br><ol>
+                            <li>
+                                Вычитаем определённую константу x из ключа узла;
+                            </li>
+                            <li>
+                                Если новый ключ меньше ключа минимального элемента кучи, то обмениваем ключ элемента местами с ключом минимума;
+                            </li>
+                            <li>
+                                Если возникает нарушение в узле, ключ которого уменьшался, то инкрементируем разряд счётчика нарушений, который соответсвует
+                                рангу узла.
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">remove(element, heap)</h4><br>
+                        Операция удаления определённого элемента из кучи соответсвует фибоначевой куче:
+                        <br><br><ol>
+                            <li>
+                                Выполняем decreaseKey;
+                            </li>
+                            <li>
+                                Выполняем deleteMin.
+                            </li>
+                        </ol>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow; text-transform: none;">meld(heap1, heap2)</h4><br>
+                        Операция слияния двух толстых куч в одну:
+                        <br><br><ol>
+                            <li>
+                                Фиксируем все нарушения в куче с меньшим максимальным рангом. Предположим, что это heap2;
+                            </li>
+                            <li>
+                                Проходим по счётчику нарушений этой кучи от младшего ранга к старшему, пропуская те значения разрядов, 
+                                которые равны 0;
+                            </li>
+                            <li>
+                                Везде где значение не 0, фиксируем разряд пока он не станет равен 1;
+                            </li>
+                            <li>
+                                Преобразуем это нарушение ранга r в нарушение ранга r + 1, используя братьев нарушаемого узла;
+                            </li>
+                            <li>
+                                Как только heap2 свободна от нарушений вставляем все значения из корня heap2 в heap1 инкрементированием 
+                                соответсвующих разрядов;
+                            </li>
+                            <li>
+                                Если минимальный элемент heap2 меньше чем минимум heap1, то переприсваиваем укатель на минимум модифицированной кучи;
+                            </li>
+                            <li>
+                                Возвращаем модифицированную heap1.
+                            </li>
+                        </ol>
+                    </section>
+                </section>
+                <section>
+                    <section style="font-size: 65%;">
+                        Докажем временную сложность основных операций толстой кучи:
+                        <br><table style="font-size: 85%;">
+                            <thead>
+                                <td>
+                                    Операция
+                                </td>
+                                <td>
+                                    Оценка временной сложности
+                                </td>
+                            </thead>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">makeHeap()</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(1)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">add(element, heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(1)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">getMin(heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(1)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">getSize(heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(1)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">decreaseKey(element, heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(1)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">deleteMin(heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(log n)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">remove(element, heap)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(log n)$</h2>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong style="color: yellow;">meld(heap1, heap2)</strong>
+                                </td>
+                                <td>
+                                    <h2 style="display: inline-block; color: green;">$O(log n)$</h2>
+                                </td>
+                            </tr>
+                        </table>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Операции getMin и getSize только возвращают уже сохранённые и подсчитанные значения, а 
+                        потому их константность очевидна.
+                    </section>
+                    <section style="font-size: 65%;">
+                        makeHeap() определяет только максимальный ранг кучи до первой операции добавления. Счётчики инициализируются 
+                        поразрядно, а потому эта операция всегда занимает константу.
+                    </section>
+                    <section style="font-size: 65%;">
+                        Для операции add(element, heap) доказательство будет сложнее, ведь с ней всё не так явно.<br><br>
+                        В толстой куче ранга r будет <h2 style="display: inline-block; color: yellow;">$ 3^r $</h2> узлов.<br><br>
+                        Из этого исходит то, что в толстой куче с n элементами <h2 style="display: inline-block; color: yellow;">$log(n)$</h2> рангов 
+                        (разрядов корневого счётчика);<br><br>
+                        Каждый раз при добавлении значений создаются деревья 0-го ранга, удаляются, перестраиваются в дерево 
+                        следующего ранга, добавляются заново и так пока корневой счётчик не будет зафиксирован. Таким образом:<br>
+                        <ul>
+                            <li>
+                                В нулевой разряд за весь цикл работы кучи добавлено <h2 style="display: inline-block; color: yellow;">$n$</h2> деревьев;
+                            </li>
+                            <li>
+                                В первый разряд за весь цикл работы кучи добавлено <h2 style="display: inline-block; color: yellow;">$n/3$</h2> деревьев;
+                            </li>
+                            <li>
+                                В k-ый разряд за весь цикл работы кучи добавлено <h2 style="display: inline-block; color: yellow;">$n/3^r$</h2> деревьев;
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Таким образом за n операций добавлено следующее количество деревьев:<br>
+                        <h2 style="display: inline-block; color: yellow;">$\sum_{i=0}^{logn} n/{3^i} = 1.5n - 0.5 \approx 1.5n$</h2><br><br>
+                        Таким образом получаем константу <h2 style="display: inline-block; color: yellow;">$O(1)$ $амортизированое$</h2> 
+                        (<h2 style="display: inline-block; color: yellow;">$1.5n/n=1.5$</h2>).
+                        <br><br>Замеры времени на практике дают следующие результаты:<br><br>
+                        <ul>
+                            <li>
+                                Худший случай (инициализация нового разряда перед добавлением дерева + возможная фиксация счётчика): может доходить до 1.9805 милисекунд;
+                            </li>
+                            <li>
+                                Средний случай (добавление в существующий разряд): 0.0013 милисекунд - 0.0342 милисекунды;
+                            </li>
+                        </ul>
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow;">Графическое отображение замеров времени работы операции add</h4><br>
+                        Ось Х - количество элементов, ось Y - время в милисекундах.
+                        <iframe style="width: 88vw; height: 84vh; margin: 0 0 0 15%;" src="https://testing-thick-heap.000webhostapp.com/add_plot.html" scrolling="no" frameborder="no" 
+                        allowfullscreen="true"></iframe>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Докажем логарифмическую сложность для операции deleteMin(heap).<br><br>
+                        У элемента ранга r ровно 2r непосредственных детей. Из свойств толстых деревьев: если ранг не может быть больше 
+                        чем <h2 style="display: inline-block; color: yellow;">$log_3(n)$</h2>, то и детей не больше 
+                        <h2 style="display: inline-block; color: yellow;">$log_3(n)$</h2>.<br><br>
+                        Если каждый сын удалённого узла вставляется за О(1), то все дети вставляются за O(log n). 
+                        Поиск минимального элемента также имеет сложность O(log n), ведь каждый разряд просматривается по 1 разу.<br><br>
+
+                        В итоге временная сложность операции удаления минимума - <h2 style="display: inline-block; color: yellow;">$O(log n)$</h2>.
+                         На практике: 0.0034 - 1.2513 милисекунд.
+                    </section>
+                    <section style="font-size: 65%;">
+                        <h4 style="color: yellow;">Графическое отображение замеров времени работы операции deleteMin</h4><br>
+                        Ось Х - количество элементов, ось Y - время в милисекундах.
+                        <iframe style="width: 88vw; height: 84vh; border-radius: 2%; margin: 0 0 0 15%;" src="https://testing-thick-heap.000webhostapp.com/del_plot.html" scrolling="no" frameborder="no" 
+                        allowfullscreen="true"></iframe>
+                    </section>
+                    <section style="font-size: 65%;">
+                        Операция decreaseKey(element, heap) срабатывает за фиксированое время, ведь в ней нет ни циклов ни рекурсии. 
+                        Время работы: <strong style="color: yellow;">O(1)</strong>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        Операция remove(element, heap) состоит из deleteMin и decreaseKey, а поскольку логарифм перекрывает константу, 
+                        то временная сложность <br><strong style="color: yellow;">O(log n)</strong>.
+                    </section>
+                    <section style="font-size: 65%;">
+                        Операция meld(heap1, heap2) должна обойти счётчик нарушений и добавить деревья во вторую кучу. Оба шага занимают 
+                        по O(log n). Тогда асимптотика слияния куч <strong style="color: yellow;">O(log n)</strong>.
+                    </section>
+                    <section style="font-size: 65%;">
+                            Новый узел создаётся только при добавлении элемента. В иных случаях меняются ссылки между уже существующими узлами.
+                            <br><br>Затраты памяти:  <strong style="color: yellow;">O(n)</strong>.
+                    </section>
+                </section>
+                <section style="font-size: 65%;">
+                    Применимость толстой кучи не слишком лучше чем у обычной фибоначчиевой кучи. Программная сложность всё ещё высока, а 
+                    коэфициенты во времени работы тоже достаточно высоки. Поэтому она всё ещё менее привлекательная чем обычная бинарная куча.
+                </section>
+                <section style="font-size: 65%;">
+                    <h5 style="color: yellow;">РЕАЛИЗЦИЯ НА C#</h5>
+                    <iframe style="width: 80vw; height: 72vh" src="https://repl.it/repls/MammothDenseNumerator?lite=true" scrolling="no" frameborder="no"
+                     allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe>
+                </section>
+                <section>
+                    <section>
+                        <h4 style="color: yellow;">КОНСОЛЬНОЕ ПРИЛОЖЕНИЕ НА C#</h4><br>
+                        <a style="font-size: 65%;" href="ThickHeap2.exe" target="_blank">.exe файл консольного приложения для тестирования
+                        толстой кучи. От веб версии отличается наличием больших заготовленых тестов в файлах <br>(от 100 000 до 500 000 
+                        различных действий).</a><br><br>
+                    </section>
+                    <section>
+                            <h4 style="color: yellow;">Файлы, используемые для тестирования</h4><br>
+                            <a style="font-size: 65%;" href="https://testing-thick-heap.000webhostapp.com/extra-big-numbers.txt" target="_blank">Тест на добавление 100 000 больших чисел</a><br><br>
+                            <a style="font-size: 65%;" href="https://testing-thick-heap.000webhostapp.com/sort.txt" target="_blank">Тест на сортировку 333 333 чисел в пределах int</a><br><br>
+                            <a style="font-size: 65%;" href="https://testing-thick-heap.000webhostapp.com/time.txt" target="_blank">Тест на проверку на скорость добавления и дальнейшего удаления 100 000</a><br><br>
+                            <a style="font-size: 65%;" href="https://testing-thick-heap.000webhostapp.com/size.txt" target="_blank">Тест на проверку на скорость добавления и удаления 500 000 раз</a><br><br>
+                    </section>
+                    <section>
+                            <h4 style="color: yellow;">Скрипт для генерации тестовых файлов на Python 3</h4><br>
+
+                    </section>
+                </section>
+                <section>
+                        <h4 style="color: yellow;">Источники</h4><br>
+                        <ul>
+                            <li>
+                                <a style="font-size: 65%;" href="https://testing-thick-heap.000webhostapp.com/article.pdf">Оригинальная статья Роберта Тарьяна и Хаима Каплана от 2005 года</a><br><br>
+                            </li>
+                            <li>
+                                <a style="font-size: 65%;" href="https://www.intuit.ru/studies/courses/100/100/lecture/2935?page=1">Лекции от НОУ ИНТУИТ</a><br><br>
+                            </li>
+                            <li>
+                                <a style="font-size: 65%;" href="https://qps.ru/nqMeb">Викиконспекты с псевдокодом структуры данных</a><br><br>
+                            </li>
+                            <li>
+                                <a style="font-size: 65%;" href="https://pdfs.semanticscholar.org/a310/dfe8f7d9664f0946a1884be4798870811cc4.pdf">
+                                    Статья Амра Элмасри и Юрки Катаяйнена с описанием реализации тостой кучи без счётчиков</a><br><br>
+                            </li>
+                        </ul>
+                </section>
+                <section>
+                    <a href="base.html">Перейдём к визуализации</a>
+                </section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+        <script type="text/x-mathjax-config">
+            MathJax.Hub.Config({
+                tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+            });
+        </script>
+        <script type="text/javascript" async
+                src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML"></script>
+        
+        <script>
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				],
+                slideNumber: true,
+                transition: 'convex',
+                dependencies: [
+		            { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+	            ]
+			});
+        </script>
+	</body>
+</html>
