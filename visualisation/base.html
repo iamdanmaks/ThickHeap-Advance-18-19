@@ -102,14 +102,6 @@
 						<path d="M0,-5L10,0L0,5"></path>
 					</marker>
 				</defs>
-				<g transform="translate(310, 620)" style="opacity: 1;">
-					<circle class="node minNode" r="17"></circle>
-				</g>
-				<g transform="translate(560, 620)" style="opacity: 1;">
-					<circle class="node activeNode" r="17"></circle>
-				</g>
-				<text x=335 y=620 font-family="sans-serif" style="font-size:85%" >- минимальный узел в куче </text>
-				<text x=585 y=620 font-family="sans-serif" style="font-size:85%" >- активный узел </text>
 				<text x=330 y=22 font-family="sans-serif" style="font-size:85%" >ранг </text>
 				<text x=330 y=46 font-family="sans-serif" style="font-size:85%" >значение </text>
 					
@@ -117,6 +109,18 @@
 
 
 		</div>
+
+		<svg width = "250" height = "120" style="position: absolute; bottom: 0; left: 0;">
+			<g transform="translate(20, 20)" style="opacity: 1;">
+				<circle class="node minNode" r="17"></circle>
+			</g>
+			<g transform="translate(20, 60)" style="opacity: 1;">
+				<circle class="node activeNode" r="17"></circle>
+			</g>
+			<text x=55 y=30 font-family="sans-serif" style="font-size:85%" >- минимальный узел в куче </text>
+			<text x=55 y=70 font-family="sans-serif" style="font-size:85%" >- активный узел </text>
+			<text id="sizeCounter" x=20 y=98 font-family="sans-serif" style="font-size:85%">Количество элементов: 0</text>
+		</svg>
 					
 		<div class="w-50 text-center" style="overflow-y: scroll; height: 19vh; position: fixed; bottom: -18vh; margin: 0 0 0 25vw; background: tomato;
 			transition: 410ms; padding: 0 0 1% 0;" 
