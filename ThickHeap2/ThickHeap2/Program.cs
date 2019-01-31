@@ -1961,6 +1961,12 @@ namespace ThickHeap2
             try
             {
                 number_of_operations = Convert.ToInt32(numbers[1]);
+
+                if (number_of_operations > 20000000)
+                {
+                    Console.WriteLine("Number of operations is too big!");
+                    return;
+                }
             }
 
             catch { }
