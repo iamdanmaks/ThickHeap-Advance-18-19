@@ -974,7 +974,7 @@ namespace ThickHeap2
                         {
                             string[] v = tests[i].Split('\t');
 
-                            if (!IsDigitsOnly(v[0]) || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]))
+                            if (!IsDigitsOnly(v[0]) || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]) || v[0] == "" || v[1] != "" || v[2] != "")
                             {
                                 Console.WriteLine("\nValues have to be doubles or 'del'!\n");
                                 return;
@@ -1017,7 +1017,7 @@ namespace ThickHeap2
                         {
                             string[] v = tests[i].Split('\t');
 
-                            if (v[0] != "del" || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]))
+                            if (v[0] != "del" || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]) || v[0] == "" || v[1] != "" || v[2] != "")
                             {
                                 Console.WriteLine("\nValues have to be doubles or 'del'!\n");
                                 return;
