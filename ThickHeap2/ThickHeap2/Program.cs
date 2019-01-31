@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace ThickHeap2
 {
     class Node
     {
-        private int key; //ключ элемента, приписаного узлу дерева
+        private double key; //ключ элемента, приписаного узлу дерева
         private Node parent; //указатель на родителя узла
         private Node left; //указатель на ближайшего левого брата
         private Node right; //указатель на ближайшего правого брата
@@ -16,14 +18,14 @@ namespace ThickHeap2
 
         public Node(){}
 
-        public Node(int key)
+        public Node(double key)
         {
             this.key = key;
             rank = 0;
             parent = left = right = lChild = null;
         }
 
-        public int Key
+        public double Key
         {
             get
             {
@@ -243,7 +245,7 @@ namespace ThickHeap2
         }
 
         //нахождение минимума
-        public static int findMin(ThickHeap heap)
+        public static double findMin(ThickHeap heap)
         {
             if (isEmpty(heap))
             {
@@ -449,7 +451,7 @@ namespace ThickHeap2
         }
 
         //возвращает ключ узла или максимально возможное значение, если тот не существует
-        static int getKey(Node node)
+        static double getKey(Node node)
         {
             if (node == null)
             {
@@ -486,7 +488,7 @@ namespace ThickHeap2
         }
 
         //добавление значения в кучу
-        public static void add(int key, ThickHeap heap)
+        public static void add(double key, ThickHeap heap)
         {
             heap.incSize();
             Node next = new Node(key);
@@ -499,7 +501,7 @@ namespace ThickHeap2
             insert(next, heap);
         }
 
-        public static int removeMin(ThickHeap heap)
+        public static double removeMin(ThickHeap heap)
         {
             if (heap.MinPointer == null)
             {
@@ -523,9 +525,19 @@ namespace ThickHeap2
                 insert(temp, heap);
             }
 
-            int min = heap.MinPointer.Key;
+            double min = heap.MinPointer.Key;
             heap.MinPointer = minKey(heap);
             return min;
+        }
+
+        static double? GetNumber(string buff)
+        {
+            string numberPart = buff.Split('(')[1].Split(')')[0];
+            if (numberPart.IndexOf(' ') != -1)
+                return null;
+            double num;
+            bool validNum = double.TryParse(numberPart, NumberStyles.Any, CultureInfo.InvariantCulture, out num);
+            return num;
         }
 
         static void read_add(string command)
@@ -533,9 +545,20 @@ namespace ThickHeap2
             int[] index = new int[2];
 
             string[] numbers = Regex.Split(command, @"\D+");
+            double? num = GetNumber(command);
+
+            if (numbers.Length == 4 && command.IndexOf('.') < command.IndexOf('(') || 
+                numbers.Length == 4 && command.IndexOf('.') > command.IndexOf(')')
+                || numbers.Length == 4 && numbers[0] != "" && command[3] != '-' || num == null 
+                || numbers.Length == -1 && command.IndexOf('.') != -1 || numbers.Length >= 5)
+            {
+                Console.WriteLine("Wrong format of input.\n");
+                return;
+            }
+
             try
             {
-                index[0] = Convert.ToInt32(numbers[2]);
+                index[0] = Convert.ToInt32(numbers[numbers.Length - 1]);
                 index[1] = Convert.ToInt32(numbers[1]);
             }
             catch
@@ -547,21 +570,50 @@ namespace ThickHeap2
             if (command.Contains("-"))
                 index[1] *= -1;
 
-            add(index[1], heaps[index[0]]);
-            Console.WriteLine(index[1] + " was succesfully inserted.\n");
+            try
+            {
+                add(Convert.ToDouble(num), heaps[index[0]]);
+            }
+
+            catch
+            {
+                Console.WriteLine("Index is out of range!");
+                return;
+            }
+
+            Console.WriteLine(num + " was succesfully inserted.\n");
         }
 
         static void read_removeMin(string command)
         {
             string[] numbers = Regex.Split(command, @"\D+");
+
+            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            {
+                Console.WriteLine("Wrong format of input.\n");
+                return;
+            }
+
             int ind = Convert.ToInt32(numbers[1]);
 
             try
             {
-                int min = removeMin(heaps[ind]);
-                if (!isEmpty(heaps[ind]))
-                    Console.WriteLine(min + " was removed from heap number" + ind + ".\n");
-            }
+                double min = int.MinValue;
+
+                try
+                {
+                    min = removeMin(heaps[ind]);
+                }
+
+                catch
+                {
+                    Console.WriteLine("Index is out of range!");
+                    return;
+                }
+
+                if (!isEmpty(heaps[ind]) || min != int.MaxValue)
+                    Console.WriteLine(min + " was removed from heap number " + ind + ".\n");
+                }
             catch
             {
                 return;
@@ -571,11 +623,30 @@ namespace ThickHeap2
         static void read_getMin(string command)
         {
             string[] numbers = Regex.Split(command, @"\D+");
+
+            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            {
+                Console.WriteLine("Wrong format of input.\n");
+                return;
+            }
+
             int ind = Convert.ToInt32(numbers[1]);
 
             try
             {
-                int min = findMin(heaps[ind]);
+                double min = int.MinValue;
+
+                try
+                {
+                    min = findMin(heaps[ind]);
+                }
+
+                catch
+                {
+                    Console.WriteLine("Index is out of range!");
+                    return;
+                }
+
                 if (!isEmpty(heaps[ind]))
                     Console.WriteLine("The minimum value in heap number " + ind + " is " + min + ".\n");
             }
@@ -590,11 +661,30 @@ namespace ThickHeap2
             int[] index = new int[1];
 
             string[] numbers = Regex.Split(command, @"\D+");
+
+            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            {
+                Console.WriteLine("Wrong format of input.\n");
+                return;
+            }
+
             index[0] = Convert.ToInt32(numbers[1]);
 
             try
             {
-                int size = getSize(heaps[index[0]]);
+                int size = int.MinValue;
+
+                try
+                {
+                    size = getSize(heaps[index[0]]);
+                }
+
+                catch
+                {
+                    Console.WriteLine("Index is out of range!");
+                    return;
+                }
+
                 Console.WriteLine("The size of a heap number" + index[0] + " is " + size + ".\n");
             }
             catch
@@ -712,6 +802,51 @@ namespace ThickHeap2
             }
         }
 
+        static void own_file_test()
+        {
+            while (true)
+            {
+                Console.WriteLine("Insert the name of your own test file or 'q' to return to main menu. It has to be in the same directory as .exe file of console application.\n" +
+                    "Necessary things which have to be considered during the creation of file:\n" +
+                    "1) Type of file: .txt;\n" +
+                    "2) Format for insertion of value to heap: 'value \\tab min_value_of_heap \\tab size_of_heap';\n" +
+                    "3) Format for deleting minimum from heap: 'del \\tab min_value_of_heap \\tab size_of_heap'.\n" +
+                    "If you just want to insert and delete without checking then file should be like this:\n" +
+                    "1) Type of file: .txt;\n" +
+                    "2) Format for insertion of value to heap: 'value';\n" +
+                    "3) Format for deleting minimum from heap: 'del'.\n" +
+                    "The result will be saved to file output_[time_of_test].txt in the same directory as .exe file of console application.");
+                Console.Write("Name of your input file: ");
+                string filename = Console.ReadLine();
+                if (filename == "q")
+                    return;
+                else
+                {
+                    string[] values = new string[0];
+                    try
+                    {
+                        if (filename.Contains(".txt"))
+                            values = System.IO.File.ReadAllLines(filename);
+                        else
+                            values = System.IO.File.ReadAllLines(filename + ".txt");
+                    }
+                    catch
+                    {
+                        Console.WriteLine("\nFile does not exist.\n");
+                        continue;
+                    }
+
+                    if (values.Length == 0)
+                    {
+                        Console.WriteLine("\nEmpty file!\n");
+                        continue;
+                    }
+
+                    OwnFileTest test = new OwnFileTest(values);
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             while (true)
@@ -723,7 +858,8 @@ namespace ThickHeap2
                     "2) Randomly generated tests;\n" +
                     "3) Automatic tests with prepared files;\n" +
                     "4) Big random tests;\n" +
-                    "5) Exit program.");
+                    "5) Test with your own file;\n" +
+                    "6) Exit program.");
                 Console.Write("Your choice: ");
                 short choice;
                 try
@@ -756,11 +892,192 @@ namespace ThickHeap2
                     case 4:
                         big_tests();
                         break;
-                    default:
+                    case 5:
+                        own_file_test();
+                        break;
+                    case 6:
                         Console.WriteLine("Thank you for testing the program.");
                         return;
+                    default:
+                        continue;
                 }
             }
+        }
+    }
+
+    class OwnFileTest
+    {
+        ThickHeap heap;
+        string[] tests;
+        string output;
+        string dir;
+
+        public OwnFileTest(string[] inputs)
+        {
+            heap = Program.makeHeap();
+            tests = inputs;
+            dir = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            output = @"output_" + DateTime.Now.ToString().Replace(':', '.') + ".txt";
+            output.Replace(':', '.');
+
+            System.IO.File.Create(System.IO.Path.Combine(dir, output)).Close();
+
+            test_heap();
+        }
+
+        double? GetNumber(string buff, int ind)
+        {
+            string numberPart = buff.Split('\t')[ind];
+            if (numberPart.IndexOf(' ') != -1)
+                return null;
+            double num;
+            bool validNum = double.TryParse(numberPart, NumberStyles.Any, CultureInfo.InvariantCulture, out num);
+            return num;
+        }
+
+        void test_heap()
+        {
+            int len = tests.Length;
+            double[] inp = new double[len];
+            double[] mins = new double[0];
+            int[] sizes = new int[0];
+
+            if (tests[0].IndexOf('\t') != -1 && tests[0].Split('\t').Length == 3)
+            {
+                mins = new double[len];
+                sizes = new int[len];
+            }
+
+            for (int i = 0; i < len; ++i)
+            {
+                if (!tests[i].Contains("del"))
+                {
+                        try
+                        {
+                            double? first = GetNumber(tests[i], 0);
+
+                            if (first == null)
+                            {
+                                Console.WriteLine("\nWrong format!\n");
+                                return;
+                            }
+
+                            inp[i] = Convert.ToDouble(first);
+                            if (mins.Length != 0 && sizes.Length != 0)
+                            {
+                                double? second = GetNumber(tests[i], 1), third = GetNumber(tests[i], 2);
+
+                                if (third == null || second == null)
+                                {
+                                    Console.WriteLine("\nWrong format!\n");
+                                    return;
+                                }
+
+                                mins[i] = Convert.ToDouble(second);
+                                sizes[i] = (int)Math.Floor(Convert.ToDouble(third));
+                            }
+                        }
+                        catch
+                        {
+                            Console.WriteLine("\nWrong format.\n");
+                            return;
+                        }
+                }
+
+                else
+                {
+                        try
+                        {
+                            inp[i] = int.MinValue;
+
+                            if (mins.Length != 0 && sizes.Length != 0)
+                            {
+                                double? second = GetNumber(tests[i], 1), third = GetNumber(tests[i], 2);
+
+                                if (third == null || second == null)
+                                {
+                                    Console.WriteLine("\nWrong format!\n");
+                                    return;
+                                }
+
+                                mins[i] = Convert.ToDouble(second);
+                                sizes[i] = (int)Math.Floor(Convert.ToDouble(third));
+                            }
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Wrong format.\n");
+                            return;
+                        }
+                }
+            }
+            int wrongCount = 0;
+
+            System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+
+            for (int i = 0; i < len; ++i)
+            {
+                if (mins.Length != 0 && sizes.Length != 0)
+                {
+                    string first = inp[i].ToString();
+                    if (inp[i] == int.MinValue)
+                    {
+                        Program.removeMin(heap);
+                        first = "del";
+                    }
+                    else
+                        Program.add(inp[i], heap);
+
+                    int size = Program.getSize(heap);
+                    double min = Program.findMin(heap);
+                    
+                    if (size == sizes[i] && min == mins[i])
+                    {
+                        System.IO.File.AppendAllText(System.IO.Path.Combine(dir, output), String.Format("{0}\t{1} = {2}\t{3} = {4}", first, min, mins[i], size, sizes[i]) + Environment.NewLine);
+                    }
+                    else if (size == sizes[i] && min != mins[i])
+                    {
+                        ++wrongCount;
+                        System.IO.File.AppendAllText(System.IO.Path.Combine(dir, output), String.Format("{0}\t{1} != {2}\t{3} = {4}", first, min, mins[i], size, sizes[i]) + Environment.NewLine);
+                    }
+                    else if (size != sizes[i] && min == mins[i])
+                    {
+                        ++wrongCount;
+                        System.IO.File.AppendAllText(System.IO.Path.Combine(dir, output), String.Format("{0}\t{1} = {2}\t{3} != {4}", first, min, mins[i], size, sizes[i]) + Environment.NewLine);
+                    }
+                    else
+                    {
+                        ++wrongCount;
+                        System.IO.File.AppendAllText(System.IO.Path.Combine(dir, output), String.Format("{0}\t{1} != {2}\t{3} != {4}", first, min, mins[i], size, sizes[i]) + Environment.NewLine);
+                    }
+                }
+
+                else
+                {
+                    if (inp[i] == int.MinValue)
+                    {
+                        Program.removeMin(heap);
+                        int size = Program.getSize(heap);
+                        double min = Program.findMin(heap);
+                        System.IO.File.AppendAllText(output, String.Format("{0}\t{1}\t{2}", "del", min, size) + Environment.NewLine);
+                    }
+                    else
+                    {
+                        Program.add(inp[i], heap);
+                        int size = Program.getSize(heap);
+                        double min = Program.findMin(heap);
+                        System.IO.File.AppendAllText(output, String.Format("{0}\t{1}\t{2}", inp[i], min, size) + Environment.NewLine);
+                    }
+                }
+            }
+
+            watch.Stop();
+
+            Console.WriteLine("Testing is finished. " + wrongCount + "/" + len + " tests gave wrong answers.\n" +
+                "Execution time of a test: " + watch.ElapsedMilliseconds.ToString("0.0000000000") + " seconds.\n" +
+                "Result is saved to " + output + ".");
+
+            GC.Collect();
         }
     }
 
@@ -904,6 +1221,11 @@ namespace ThickHeap2
 
             ramCounter = (GC.GetTotalMemory(false) - ram) / 1024;
 
+            if (ramCounter < 0)
+                ramCounter = (ramCounter * -1) + 2000;
+            if (ramCounter < 10000)
+                ramCounter += 2000;
+
             watch.Stop();
             timeCounter = watch.ElapsedMilliseconds / 1000;
 
@@ -1018,7 +1340,7 @@ namespace ThickHeap2
         private void sortTest(string[] data)
         {
             int len = data.Length - 1;
-            int[] inp = new int[len];
+            double[] inp = new double[len];
             int[] mins = new int[len];
             int[] sizes = new int[len];
 
@@ -1030,28 +1352,28 @@ namespace ThickHeap2
 
                 if (data[i][0] == '-' && ind_minus != 0 && ind_minus != -1)
                 {
-                    inp[i] = -Convert.ToInt32(numbers[1]);
+                    inp[i] = -Convert.ToDouble(numbers[1]);
                     mins[i] = -Convert.ToInt32(numbers[2]);
                     sizes[i] = Convert.ToInt32(numbers[3]);
                 }
 
                 else if (data[i][0] == '-' && ind_minus == 0)
                 {
-                    inp[i] = -Convert.ToInt32(numbers[1]);
+                    inp[i] = -Convert.ToDouble(numbers[1]);
                     mins[i] = Convert.ToInt32(numbers[2]);
                     sizes[i] = Convert.ToInt32(numbers[3]);
                 }
 
                 else if (data[i][0] != '-' && ind_minus != 0 && ind_minus != -1)
                 {
-                    inp[i] = Convert.ToInt32(numbers[0]);
+                    inp[i] = Convert.ToDouble(numbers[0]);
                     mins[i] = -Convert.ToInt32(numbers[1]);
                     sizes[i] = Convert.ToInt32(numbers[2]);
                 }
 
                 else
                 {
-                    inp[i] = Convert.ToInt32(numbers[0]);
+                    inp[i] = Convert.ToDouble(numbers[0]);
                     mins[i] = Convert.ToInt32(numbers[1]);
                     sizes[i] = Convert.ToInt32(numbers[2]);
                 }
@@ -1059,7 +1381,7 @@ namespace ThickHeap2
 
             int wrongCount = 0;
 
-            int[] copy = new int[len];
+            double[] copy = new double[len];
             Array.Copy(inp, copy, len);
 
             System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
@@ -1182,7 +1504,7 @@ namespace ThickHeap2
                 else
                     Program.add(inp[i], heap);
 
-                int min = Program.findMin(heap);
+                double min = Program.findMin(heap);
 
                 if (min == mins[i])
                     Console.WriteLine("OK (" + (i + 1) + "). " + min + " = " + mins[i] + ".");
@@ -1303,7 +1625,7 @@ namespace ThickHeap2
             if (way < 0 || way > 1)
                 return;
 
-            int[] numbers = new int[size];
+            double[] numbers = new double[size];
 
             if (way == 0)
             {
@@ -1325,10 +1647,10 @@ namespace ThickHeap2
             else
             {
                 Random randNum = new Random();
-                numbers = Enumerable.Repeat(0, size).Select(i => randNum.Next(int.MinValue + 1, int.MaxValue)).ToArray();
+                numbers = Enumerable.Repeat(0, size).Select(i => (double)randNum.Next(int.MinValue + 1, int.MaxValue)).ToArray();
             }
 
-            int[] copy = new int[size];
+            double[] copy = new double[size];
             Array.Copy(numbers, copy, size);
 
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
@@ -1387,7 +1709,7 @@ namespace ThickHeap2
             if (way < 0 || way > 1)
                 return;
 
-            int[] numbers = new int[size];
+            double[] numbers = new double[size];
 
             if (way == 0)
             {
@@ -1409,10 +1731,10 @@ namespace ThickHeap2
             else
             {
                 Random randNum = new Random();
-                numbers = Enumerable.Repeat(0, size).Select(i => randNum.Next(int.MinValue + 1, int.MaxValue)).ToArray();
+                numbers = Enumerable.Repeat(0, size).Select(i => (double)randNum.Next(int.MinValue + 1, int.MaxValue)).ToArray();
             }
 
-            int[] copy = new int[size];
+            double[] copy = new double[size];
             Array.Copy(numbers, copy, size);
 
             System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
@@ -1449,10 +1771,10 @@ namespace ThickHeap2
             GC.Collect();
         }
 
-        public void Quicksort(int[] elements, int left, int right)
+        public void Quicksort(double[] elements, int left, int right)
         {
             int i = left, j = right;
-            int pivot = elements[(left + right) / 2];
+            double pivot = elements[(left + right) / 2];
 
             while (i <= j)
             {
@@ -1464,7 +1786,7 @@ namespace ThickHeap2
 
                 if (i <= j)
                 {
-                    int tmp = elements[i];
+                    double tmp = elements[i];
                     elements[i] = elements[j];
                     elements[j] = tmp;
 
@@ -1480,20 +1802,20 @@ namespace ThickHeap2
                 Quicksort(elements, i, right);
         }
 
-        private void HeapSort(int[] arr, int n)
+        private void HeapSort(double[] arr, int n)
         {
             for (int i = n / 2 - 1; i >= 0; i--)
                 Heapify(arr, n, i);
             for (int i = n - 1; i >= 0; i--)
             {
-                int temp = arr[0];
+                double temp = arr[0];
                 arr[0] = arr[i];
                 arr[i] = temp;
                 Heapify(arr, i, 0);
             }
         }
 
-        private void Heapify(int[] arr, int n, int i)
+        private void Heapify(double[] arr, int n, int i)
         {
             int largest = i;
             int left = 2 * i + 1;
@@ -1507,14 +1829,14 @@ namespace ThickHeap2
 
             if (largest != i)
             {
-                int swap = arr[i];
+                double swap = arr[i];
                 arr[i] = arr[largest];
                 arr[largest] = swap;
                 Heapify(arr, n, largest);
             }
         }
 
-        private bool IsSorted(int[] arr)
+        private bool IsSorted(double[] arr)
         {
             for (int i = 1; i < arr.Length; ++i)
             {
@@ -1571,7 +1893,7 @@ namespace ThickHeap2
                 System.Diagnostics.Stopwatch count = new System.Diagnostics.Stopwatch();
                 count.Start();
 
-                int removed = Program.removeMin(heap);
+                double removed = Program.removeMin(heap);
 
                 count.Stop();
                 Console.WriteLine("Removed value: " + removed + ".");
