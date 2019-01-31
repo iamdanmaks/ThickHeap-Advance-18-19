@@ -547,7 +547,7 @@ namespace ThickHeap2
             string[] numbers = Regex.Split(command, @"\D+");
             double? num = GetNumber(command);
 
-            if (numbers.Length == 4 && command.IndexOf('.') < command.IndexOf('(') || 
+            if (numbers.Length <= 2 || numbers.Length == 4 && command.IndexOf('.') < command.IndexOf('(') || 
                 numbers.Length == 4 && command.IndexOf('.') > command.IndexOf(')')
                 || numbers.Length == 4 && numbers[0] != "" && command[3] != '-' || num == null 
                 || numbers.Length == -1 && command.IndexOf('.') != -1 || numbers.Length >= 5)
@@ -577,7 +577,7 @@ namespace ThickHeap2
 
             catch
             {
-                Console.WriteLine("Index is out of range!");
+                Console.WriteLine("Index is out of range!\n");
                 return;
             }
 
@@ -588,26 +588,27 @@ namespace ThickHeap2
         {
             string[] numbers = Regex.Split(command, @"\D+");
 
-            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            if (numbers.Length < 2 || numbers.Length == 2 && numbers[0] != "" || numbers.Length > 2 ||
+                numbers.Length == 2 && numbers[0] == numbers[1] && numbers[0] == "")
             {
                 Console.WriteLine("Wrong format of input.\n");
                 return;
             }
-
-            int ind = Convert.ToInt32(numbers[1]);
-
+            
             try
             {
+                int ind = 0;
                 double min = int.MinValue;
 
                 try
                 {
+                    ind = Convert.ToInt32(numbers[1]);
                     min = removeMin(heaps[ind]);
                 }
 
                 catch
                 {
-                    Console.WriteLine("Index is out of range!");
+                    Console.WriteLine("Index is out of range!\n");
                     return;
                 }
 
@@ -624,26 +625,30 @@ namespace ThickHeap2
         {
             string[] numbers = Regex.Split(command, @"\D+");
 
-            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            if (numbers.Length < 2 || numbers.Length == 2 && numbers[0] != "" || numbers.Length > 2 ||
+                numbers.Length == 2 && numbers[0] == numbers[1] && numbers[0] == "")
             {
                 Console.WriteLine("Wrong format of input.\n");
                 return;
             }
-
-            int ind = Convert.ToInt32(numbers[1]);
-
+            
             try
             {
+                int ind = 0;
                 double min = int.MinValue;
 
                 try
                 {
-                    min = findMin(heaps[ind]);
+                    ind = Convert.ToInt32(numbers[1]);
+                    if (!isEmpty(heaps[ind]))
+                        min = findMin(heaps[ind]);
+                    else
+                        Console.WriteLine("Heap is empty.\n");
                 }
 
                 catch
                 {
-                    Console.WriteLine("Index is out of range!");
+                    Console.WriteLine("Index is out of range or it is not a number!\n");
                     return;
                 }
 
@@ -662,13 +667,12 @@ namespace ThickHeap2
 
             string[] numbers = Regex.Split(command, @"\D+");
 
-            if (numbers.Length == 2 && numbers[0] != "" || numbers.Length != 2)
+            if (numbers.Length < 2 || numbers.Length == 2 && numbers[0] != "" || numbers.Length > 2 ||
+                numbers.Length == 2 && numbers[0] == numbers[1] && numbers[0] == "")
             {
                 Console.WriteLine("Wrong format of input.\n");
                 return;
             }
-
-            index[0] = Convert.ToInt32(numbers[1]);
 
             try
             {
@@ -676,16 +680,17 @@ namespace ThickHeap2
 
                 try
                 {
+                    index[0] = Convert.ToInt32(numbers[1]);
                     size = getSize(heaps[index[0]]);
                 }
 
                 catch
                 {
-                    Console.WriteLine("Index is out of range!");
+                    Console.WriteLine("Index is out of range!\n");
                     return;
                 }
 
-                Console.WriteLine("The size of a heap number" + index[0] + " is " + size + ".\n");
+                Console.WriteLine("The size of a heap number " + index[0] + " is " + size + ".\n");
             }
             catch
             {
@@ -809,12 +814,14 @@ namespace ThickHeap2
                 Console.WriteLine("Insert the name of your own test file or 'q' to return to main menu. It has to be in the same directory as .exe file of console application.\n" +
                     "Necessary things which have to be considered during the creation of file:\n" +
                     "1) Type of file: .txt;\n" +
-                    "2) Format for insertion of value to heap: 'value \\tab min_value_of_heap \\tab size_of_heap';\n" +
-                    "3) Format for deleting minimum from heap: 'del \\tab min_value_of_heap \\tab size_of_heap'.\n" +
+                    "2) Format for insertion of value to heap: 'value \\tab min_value_of_heap_after_operation_happened \\tab size_of_heap_after_operation_happened';\n" +
+                    "3) Format for deleting minimum from heap: 'del \\tab min_value_of_heap_after_operation_happened \\tab size_of_heap_after_operation_happened';\n" +
+                    "4) Only first three issues will be considered." +
                     "If you just want to insert and delete without checking then file should be like this:\n" +
                     "1) Type of file: .txt;\n" +
                     "2) Format for insertion of value to heap: 'value';\n" +
-                    "3) Format for deleting minimum from heap: 'del'.\n" +
+                    "3) Format for deleting minimum from heap: 'del';\n" +
+                    "4) Only first three issues will be considered." +
                     "The result will be saved to file output_[time_of_test].txt in the same directory as .exe file of console application.");
                 Console.Write("Name of your input file: ");
                 string filename = Console.ReadLine();
@@ -935,6 +942,17 @@ namespace ThickHeap2
             return num;
         }
 
+        bool IsDigitsOnly(string str)
+        {
+            foreach (char c in str)
+            {
+                if (c < '0' && c != '-' && c != '.' && c != ',' || c > '9' && c != '-' && c != '.' && c != ',')
+                    return false;
+            }
+
+            return true;
+        }
+
         void test_heap()
         {
             int len = tests.Length;
@@ -954,6 +972,14 @@ namespace ThickHeap2
                 {
                         try
                         {
+                            string[] v = tests[i].Split('\t');
+
+                            if (!IsDigitsOnly(v[0]) || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]))
+                            {
+                                Console.WriteLine("\nValues have to be doubles or 'del'!\n");
+                                return;
+                            }
+
                             double? first = GetNumber(tests[i], 0);
 
                             if (first == null)
@@ -977,6 +1003,7 @@ namespace ThickHeap2
                                 sizes[i] = (int)Math.Floor(Convert.ToDouble(third));
                             }
                         }
+
                         catch
                         {
                             Console.WriteLine("\nWrong format.\n");
@@ -988,7 +1015,15 @@ namespace ThickHeap2
                 {
                         try
                         {
-                            inp[i] = int.MinValue;
+                            string[] v = tests[i].Split('\t');
+
+                            if (v[0] != "del" || !IsDigitsOnly(v[1]) || !IsDigitsOnly(v[2]))
+                            {
+                                Console.WriteLine("\nValues have to be doubles or 'del'!\n");
+                                return;
+                            }
+
+                        inp[i] = int.MinValue;
 
                             if (mins.Length != 0 && sizes.Length != 0)
                             {
@@ -1074,7 +1109,7 @@ namespace ThickHeap2
             watch.Stop();
 
             Console.WriteLine("Testing is finished. " + wrongCount + "/" + len + " tests gave wrong answers.\n" +
-                "Execution time of a test: " + watch.ElapsedMilliseconds.ToString("0.0000000000") + " seconds.\n" +
+                "Execution time of a test: " + watch.ElapsedMilliseconds.ToString("0.0000000000") + " milliseconds.\n" +
                 "Result is saved to " + output + ".");
 
             GC.Collect();
