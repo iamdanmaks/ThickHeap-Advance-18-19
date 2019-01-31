@@ -1108,9 +1108,9 @@ namespace ThickHeap2
 
             watch.Stop();
 
-            Console.WriteLine("Testing is finished. " + wrongCount + "/" + len + " tests gave wrong answers.\n" +
+            Console.WriteLine("\nTesting is finished. " + wrongCount + "/" + len + " tests gave wrong answers.\n" +
                 "Execution time of a test: " + watch.ElapsedMilliseconds.ToString("0.0000000000") + " milliseconds.\n" +
-                "Result is saved to " + output + ".");
+                "Result is saved to " + output + ".\n");
 
             GC.Collect();
         }
