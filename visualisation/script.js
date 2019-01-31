@@ -9,7 +9,9 @@ var result;
 var isauto = true;
 var ismoving = false;
 var issecond = false;
-			
+var isexample = false;
+var basement = d.getElementById('layout').innerHTML;
+
 function getDelta(rank)
 {
     if (rank == 0) 
@@ -50,7 +52,7 @@ var svg = {
     HOR_DIST : 70,
     VER_DIST : 75,
     nextRank : 0,
-    DELAY : 10,
+    DELAY : -5,
     nextX : 50,
     moveNodes : [], // {node:, x:, y:, stopx, stopy, moveFunc}
     listpointers: [],
@@ -319,6 +321,13 @@ var svg = {
                 if (svg.moveNodes[i].moveFunc != svg.moveRoot) svg.deactivateNode(svg.moveNodes[i].node.index);							
             }
             svg.nextAnimation();
+            pointers = d.getElementsByClassName("pointer");
+                    
+            svg.draw_pointer();
+                    
+            for (var i = 0; i < pointers.length; ++i){
+                pointers[i].classList.remove("change_pointer");
+            }
         }
     },
     
@@ -573,7 +582,7 @@ var svg = {
                         pointers[i].classList.remove("change_pointer");
                     }
 
-                    return;
+                    return true;
                 }
             }
             var node = toInsert.shift();
